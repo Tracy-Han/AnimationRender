@@ -1,0 +1,5 @@
+1. how to control the memory usage?
+For each frame, 100000faces, float array. I need to allocate and delete.Will it cause a lot of memory small patches?
+Is this under control?
+
+2. function input, use pointer 
