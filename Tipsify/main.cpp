@@ -11,17 +11,19 @@ void printVector(obj_vector *v)
 	printf("%.2f  \n", v->v[2]);
 }
 
-void loadData(objLoader * testLoader)
+void loadData(objLoader * testLoader,char * objFolder)
 {
 	int i = 0; char buffer[10];
 	char filePath[100];
-	strcpy(filePath, "subdiv1/frame");
+	strcpy(filePath, objFolder);
+	strcat(filePath, "frame");
 	itoa(i + 1, buffer, 10);
 	strcat(filePath, buffer);
 
 	strcat(filePath, ".obj");
 	printf(filePath); printf("\n");
 	testLoader->load(filePath);
+	
 }
 void initialBuffer(int * piIndexBuffer, float *pfVertexPosition,
 				  objLoader *testLoader, int faceCount, int vertexCount)
@@ -48,8 +50,19 @@ void initialBuffer(int * piIndexBuffer, float *pfVertexPosition,
 }
 void main()
 {
+	int characterId = 1; int aniId = 0;
+	char Character[5][20] = { "Ganfaul_M_Aure", "Kachujin_G_Rosales", "Maw_J_Laygo", "Nightshade" };
+	char Animation[6][40] = { "dancing_maraschino_step", "Standing_2H_Cast_Spell", "Standing_2H_Magic_Area_Attack", "Standing_Jump", "Standing_React_Death_Backward", "Standing_React_Large_From_Back" };
+	
+	char objFolder[150];
+	strcpy(objFolder, "D:/TriangleOrdering/VF/Obj/");
+	strcat(objFolder, Character[characterId]);
+	strcat(objFolder, "/");
+	strcat(objFolder, Animation[aniId]);
+	strcat(objFolder, "/subdiv2/");
+
 	objLoader *testLoader = new objLoader();
-	loadData(testLoader);
+	loadData(testLoader,objFolder);
 
 	printf("Number of Vertex: %i \n", testLoader->vertexCount);
 	printf("Number of faces: %i\n", testLoader->faceCount); 
@@ -58,6 +71,7 @@ void main()
 	int faceCount = testLoader->faceCount;
 	int *piIndexBuffer = (int *)malloc(faceCount * 3 * sizeof(int));
 	int *piIndexBufferOut = (int *)malloc(faceCount * 3 * sizeof(int));
+	int *piClustersIn = (int *)malloc(faceCount * sizeof(int));
 	int *piClustersOut = (int *)malloc(faceCount * sizeof(int));
 	float *pfVertexPosition = (float *)malloc(vertexCount * 3 * sizeof(int));
 	int iCacheSize = 20; int iNumClusters; int *piScratch = NULL; int *piRemap = NULL;
@@ -73,16 +87,19 @@ void main()
 	printf("face %i index x: %u ,y: %u ,z: %u  \n", 
 		faceCount, piIndexBuffer[faceCount * 3 - 3], piIndexBuffer[faceCount * 3 - 2], piIndexBuffer[faceCount * 3 - 1]);
 
-	FanVertOptimizeVCacheOnly(piIndexBuffer,piIndexBufferOut,vertexCount,faceCount,iCacheSize,piScratch,piClustersOut,&iNumClusters);
-	printf("finish vertex cache algorithm");
+	FanVertOptimizeVCacheOnly(piIndexBuffer,piIndexBufferOut,vertexCount,faceCount,iCacheSize,piScratch,piClustersIn,&iNumClusters);
+	printf("finish vertex cache algorithm\n");
+	printf("num of clusters : %i \n", iNumClusters);
+	
+	printf("last face %u\n", piClustersIn[iNumClusters]);
+	
+	float lamda = 0.85;
+	int iNumClustersOut = 0;
+	FanVertOptimizeClusterOnly(piIndexBufferOut, vertexCount, faceCount, iCacheSize, lamda, piClustersIn, iNumClusters, piClustersOut, &iNumClustersOut, piScratch);
+	printf("finish linear clustering\n");
+	printf("num of clusters : %i \n", iNumClustersOut);
 
-	// what is piClustersOut
-	// get the entire optimization
-	// get the reordered cache-optimized order
-	// how to read the ACMR
-		// ACMR is only related to the cache and the triangle order
-		// In paper, if the ACMR drops the thread hold (!)
-	// how to get he OVR
+
 
 	getchar();
 }
